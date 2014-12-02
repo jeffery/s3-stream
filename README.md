@@ -31,3 +31,4 @@ Example:
 $ ./s3-stream.php --key=KEY --secret=SECRET --region=REGION object read BUCKET KEY
 ```
 
+Note that because your AWS key and secret are command line arguments, *they will be visible to anyone else on the same system* through the `ps faux` command, and thus I recommand you do not use `s3-stream.php` on shared systems.
