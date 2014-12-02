@@ -1,3 +1,4 @@
+#!/bin/php
 <?php
 
 namespace S3Stream;
