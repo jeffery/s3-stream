@@ -45,7 +45,7 @@ s
     $s3 = new S3(S3Client::factory($params));
 
     if ($args['--verbose'])
-        $s3->addLogger(function ($x) { fwrite(STDERR, $x); });
+        $s3->addLogger(function ($x) { fwrite(STDERR, "$x\n"); });
 
     /**
      * @param string[] $lines
