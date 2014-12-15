@@ -55,7 +55,7 @@ class S3 {
      */
     function listKeys($bucket, $prefix = '') {
         $keys = array();
-        $params = array('Bucket' => $bucket, 'Prefix' => $prefix);
+        $params = array('Bucket' => $bucket, 'Prefix' => "$prefix");
         while (true) {
             $response = $this->s3->listObjects($params);
 
@@ -64,7 +64,7 @@ class S3 {
                     $keys[] = $object['Key'];
 
             if ($response['IsTruncated'])
-                $params['Marker'] = $response['NextMarker'];
+                $params['Marker'] = $keys[count($keys) - 1];
             else
                 break;
         }
