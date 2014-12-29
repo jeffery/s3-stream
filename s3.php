@@ -54,7 +54,7 @@ class S3 {
      * @return \string[]
      */
     function listKeys($bucket, $prefix = '') {
-        $keys = array();
+        $keys   = array();
         $params = array('Bucket' => $bucket, 'Prefix' => "$prefix");
         while (true) {
             $response = $this->s3->listObjects($params);
@@ -80,7 +80,7 @@ class S3 {
         foreach ($keys as $key)
             $objects[] = array('Key' => $key);
         $this->s3->deleteObjects(array(
-            'Bucket' => $bucket,
+            'Bucket'  => $bucket,
             'Objects' => $objects,
         ));
     }
@@ -93,7 +93,7 @@ class S3 {
     function readObject($bucket, $key, $resource) {
         $request = $this->s3->getCommand('GetObject', array(
             'Bucket' => $bucket,
-            'Key' => $key,
+            'Key'    => $key,
         ))->prepare();
         $request->setResponseBody(new EntityBody($resource));
         $request->send();
@@ -135,20 +135,20 @@ class S3Upload {
     function __construct(S3Client $s3, $bucket, $key) {
         $response = $s3->createMultipartUpload(array(
             'Bucket' => $bucket,
-            'Key' => $key,
+            'Key'    => $key,
         ));
 
-        $this->s3 = $s3;
-        $this->bucket = $bucket;
-        $this->key = $key;
+        $this->s3       = $s3;
+        $this->bucket   = $bucket;
+        $this->key      = $key;
         $this->uploadId = $response['UploadId'];
     }
 
     function __destruct() {
         if (!$this->done) {
             $this->s3->abortMultipartUpload(array(
-                'Bucket' => $this->bucket,
-                'Key' => $this->key,
+                'Bucket'   => $this->bucket,
+                'Key'      => $this->key,
                 'UploadId' => $this->uploadId,
             ));
         }
@@ -172,9 +172,9 @@ class S3Upload {
             $this->sendBuffer();
 
         $this->s3->completeMultipartUpload(array(
-            'Bucket' => $this->bucket,
-            'Key' => $this->key,
-            'Parts' => $this->parts,
+            'Bucket'   => $this->bucket,
+            'Key'      => $this->key,
+            'Parts'    => $this->parts,
             'UploadId' => $this->uploadId,
         ));
 
@@ -183,16 +183,17 @@ class S3Upload {
 
     private function sendBuffer() {
         $partNumber = $this->partNumber++;
-        $response = $this->s3->uploadPart(array(
-            'Bucket' => $this->bucket,
-            'Key' => $this->key,
+        $response   = $this->s3->uploadPart(array(
+            'Bucket'     => $this->bucket,
+            'Key'        => $this->key,
             'PartNumber' => $partNumber,
-            'UploadId' => $this->uploadId,
-            'Body' => $this->buffer,
+            'UploadId'   => $this->uploadId,
+            'Body'       => $this->buffer,
         ));
-        $this->buffer = '';
+
+        $this->buffer  = '';
         $this->parts[] = array(
-            'ETag' => $response['ETag'],
+            'ETag'       => $response['ETag'],
             'PartNumber' => $partNumber,
         );
     }
