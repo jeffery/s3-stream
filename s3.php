@@ -102,46 +102,53 @@ class S3 {
     /**
      * @param string $bucket
      * @param string $key
+     * @param int $minPartSize
      * @return S3Upload
      */
-    function newUpload($bucket, $key) {
-        return new S3Upload($this->s3, $bucket, $key);
+    function newUpload($bucket, $key, $minPartSize = S3Upload::MIN_PART_SIZE) {
+        return new S3Upload($this->s3, $bucket, $key, $minPartSize);
     }
 
     /**
      * @param string $bucket
      * @param string $key
      * @param resource $resource A stream to read the object from
+     * @param int $minPartSize
+     * @throws \Exception
      */
-    function writeObject($bucket, $key, $resource) {
-        $upload = $this->newUpload($bucket, $key);
-        while (!feof($resource))
-            $upload->add(fread($resource, 5 * 1024 * 1024));
+    function writeObject($bucket, $key, $resource, $minPartSize = S3Upload::MIN_PART_SIZE) {
+        $upload = $this->newUpload($bucket, $key, $minPartSize);
+        $upload->addStream($resource);
         $upload->finish();
     }
 }
 
 class S3Upload {
+    const MIN_PART_SIZE = 5242880;
+
     private $s3;
     private $uploadId, $parts = array(), $partNumber = 1, $buffer = '';
     private $bucket, $key;
     private $done = false;
+    private $minPartSize;
 
     /**
      * @param S3Client $s3
      * @param string $bucket
      * @param string $key
+     * @param int $minPartSize
      */
-    function __construct(S3Client $s3, $bucket, $key) {
+    function __construct(S3Client $s3, $bucket, $key, $minPartSize = self::MIN_PART_SIZE) {
         $response = $s3->createMultipartUpload(array(
             'Bucket' => $bucket,
             'Key'    => $key,
         ));
 
-        $this->s3       = $s3;
-        $this->bucket   = $bucket;
-        $this->key      = $key;
-        $this->uploadId = $response['UploadId'];
+        $this->s3          = $s3;
+        $this->bucket      = $bucket;
+        $this->key         = $key;
+        $this->uploadId    = $response['UploadId'];
+        $this->minPartSize = $minPartSize;
     }
 
     function __destruct() {
@@ -160,8 +167,16 @@ class S3Upload {
     function add($data) {
         $this->buffer .= $data;
 
-        if (strlen($this->buffer) >= 5 * 1024 * 1024)
+        if (strlen($this->buffer) >= $this->minPartSize)
             $this->sendBuffer();
+    }
+
+    /**
+     * @param resource $stream
+     */
+    function addStream($stream) {
+        while (!feof($stream))
+            $this->add(fread($stream, $this->minPartSize));
     }
 
     function finish() {

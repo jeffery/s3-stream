@@ -29,6 +29,7 @@ Options:
   --verbose               Enable verbose logging
   --prefix=<prefix>       To only list the objects with the specified prefix
   --location=<location>   Create the bucket with this location. Usually this needs to be set the same as --region.
+  --min-part-size=<size>  Minimum size of an upload part. Must be >=5MiB. S3 allows at most 10,000 parts, so this must be specified to upload >50GiB. [default: 5242880]
 s
     );
 
@@ -71,7 +72,7 @@ s
         if ($args['read'])
             $s3->readObject($bucket, $args['<key>'], STDOUT);
         if ($args['write'])
-            $s3->writeObject($bucket, $args['<key>'], STDIN);
+            $s3->writeObject($bucket, $args['<key>'], STDIN, (int)$args['--min-part-size']);
         if ($args['list'])
             print joinLines($s3->listKeys($bucket, $args['--prefix']));
         if ($args['delete'])
