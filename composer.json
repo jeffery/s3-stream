@@ -12,7 +12,7 @@
     "require": {
         "docopt/docopt": "1.0.0-rc1",
         "monolog/monolog": "1.11.0",
-        "aws/aws-sdk-php": "2.7.7"
+        "aws/aws-sdk-php": "2.8.8"
     },
     "autoload": {
         "classmap": ["s3.php"]
